@@ -9,8 +9,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.Vision.VisionSubsystem;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
@@ -33,7 +33,12 @@ public class SwerveSubsystem extends SubsystemBase {
 
     private final SwerveDrive swerveDrive;
 
-    public SwerveSubsystem() {
+    private final VisionSubsystem visionSubsystem;
+
+    public SwerveSubsystem(VisionSubsystem visionSubsystem) {
+
+        this.visionSubsystem = visionSubsystem;
+
         SwerveDriveTelemetry.verbosity = telemetryVerbosity;
 
         try {
@@ -64,12 +69,26 @@ public class SwerveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if(visionSubsystem.getLeftVisionEstimatePresent())
+        {
+            addVisionMeasurment(
+                visionSubsystem.getLeftVisionEstimatePose2d(), 
+                visionSubsystem.getLeftVisionEstimateTimestamp()
+            );    
+        }
 
+        if(visionSubsystem.getRightVisionEstimatePresent())
+        {
+            addVisionMeasurment(
+                visionSubsystem.getRightVisionEstimatePose2d(), 
+                visionSubsystem.getRightVisionEstimateTimestamp()
+            );    
+        }
     }
 
-    @Override
-    public void simulationPeriodic() {
-
+    public void addVisionMeasurment(Pose2d robotPose2d, double timestampSeconds)
+    {
+        swerveDrive.addVisionMeasurement(robotPose2d, timestampSeconds);
     }
 
     public SwerveDriveKinematics getKinematics() {
@@ -143,9 +162,5 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public Rotation2d getPitch() {
         return swerveDrive.getPitch();
-    }
-
-    public void addFakeVisionReading() {
-        swerveDrive.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
     }
 }
