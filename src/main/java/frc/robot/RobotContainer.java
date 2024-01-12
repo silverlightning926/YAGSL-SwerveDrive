@@ -12,14 +12,19 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.SwerveDefault;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.Vision.VisionSubsystem;
 
 public class RobotContainer {
 
   XboxController driverController = new XboxController(0);
 
-  private final SwerveSubsystem driveSubsystem = new SwerveSubsystem();
+  private final VisionSubsystem visionSubsystem;
+  private final SwerveSubsystem driveSubsystem;
 
   public RobotContainer() {
+    visionSubsystem = new VisionSubsystem();
+    driveSubsystem = new SwerveSubsystem(visionSubsystem);
+
     configureBindings();
 
     SwerveDefault defaultTeleopDrive = new SwerveDefault(
@@ -36,7 +41,6 @@ public class RobotContainer {
 
   private void configureBindings() {
     new JoystickButton(driverController, 1).onTrue((new InstantCommand(driveSubsystem::zeroGyro)));
-    new JoystickButton(driverController, 3).onTrue(new InstantCommand(driveSubsystem::addFakeVisionReading));
   }
 
   public Command getAutonomousCommand() {

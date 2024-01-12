@@ -1,6 +1,5 @@
 package frc.robot.subsystems.Vision;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import org.photonvision.EstimatedRobotPose;
@@ -38,8 +37,15 @@ public class VisionSubsystem extends SubsystemBase {
     private Optional<EstimatedRobotPose> leftVisionEstimate;
     private Optional<EstimatedRobotPose> rightVisionEstimate;
 
-    public VisionSubsystem() throws IOException {
-        APRIL_TAG_FIELD_LAYOUT = AprilTagFields.kDefaultField.loadAprilTagLayoutField();
+    private double leftVisionEstimateTimestamp;
+    private double rightVisionEstimateTimestamp;
+
+    public VisionSubsystem() {
+        try {
+            APRIL_TAG_FIELD_LAYOUT = AprilTagFields.kDefaultField.loadAprilTagLayoutField();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load AprilTag field layout");
+        }
 
         leftCamera = new PhotonVisionCamera(
                 LEFT_CAMERA_NAME,
@@ -76,21 +82,20 @@ public class VisionSubsystem extends SubsystemBase {
         return getVisionEstimatePose2d(rightVisionEstimate);
     }
 
-    private double getVisionEstimateTimestamp(Optional<EstimatedRobotPose> visionEstimate) {
-        return visionEstimate.get().timestampSeconds;
-    }
-
     public double getLeftVisionEstimateTimestamp() {
-        return getVisionEstimateTimestamp(leftVisionEstimate);
+        return leftVisionEstimateTimestamp;
     }
 
     public double getRightVisionEstimateTimestamp() {
-        return getVisionEstimateTimestamp(rightVisionEstimate);
+        return rightVisionEstimateTimestamp;
     }
 
     @Override
     public void periodic() {
         leftVisionEstimate = leftCamera.getEstimatedGlobalPose();
         rightVisionEstimate = rightCamera.getEstimatedGlobalPose();
+
+        leftVisionEstimateTimestamp = leftVisionEstimate.get().timestampSeconds;
+        rightVisionEstimateTimestamp = rightVisionEstimate.get().timestampSeconds;
     }
 }
